@@ -14,7 +14,7 @@ if( process.env.NODE_ENV == 'development') {
 	require('dotenv').config();
 }
 
-const PUBLISH_ARN = process.env.PUBLISH_ARN || "arn:aws:sns:" + process.env.AWS_REGION + ":" + process.env.AWS_ACCOUNT_ID + ":" + process.env.SNS_TOPIC;
+const PUBLISH_ARN = process.env.SNS_TOPIC_ARN;
 
 var self = module.exports = {
 	handler: function(event, context) {
