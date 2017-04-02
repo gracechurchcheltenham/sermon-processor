@@ -29,4 +29,4 @@ before_deploy: # Get the AWS CLI
   - pip install --user awscli
   - export PATH=$PATH:$HOME/.local/bin
 after_deploy:
-  - aws lambda update-function-configuration --function-name process-sermons --environment "Variables={SNS_TOPIC_ARN=$SNS_TOPIC_ARN}"
+  - aws lambda update-function-configuration --function-name process-sermons --environment "Variables={SNS_TOPIC_ARN=$SNS_TOPIC_ARN}" > /dev/null
