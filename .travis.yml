@@ -4,6 +4,9 @@ node_js:
   - "4.3"
 env: NODE_ENV=production
 deploy:
+  on: # Only deploy a single version on master branch
+    branch: master
+    node: '4.3'
   provider: lambda
   function_name: process-sermons
   region: eu-west-1
