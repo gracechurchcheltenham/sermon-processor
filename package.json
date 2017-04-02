@@ -12,13 +12,17 @@
   "devDependencies": {
     "aws-sdk-mock": "^1.5.0",
     "chai": "^3.5.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.1.2",
+    "eslint-plugin-import": "^2.2.0",
     "mocha": "^3.1.0",
+    "nsp": "^2.6.3",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0"
   },
   "scripts": {
     "build": "zip -r processSermons.zip . -x *.git/* -x test/* ",
-    "test": "exit 0;"
+    "test": "nsp check && eslint"
   },
   "author": "Sam Freedman"
 }
