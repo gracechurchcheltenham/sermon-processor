@@ -8,6 +8,9 @@ env:
   global:
     secure: qhLjazr2XpapweJFqsGj1PeSVD1Z+6DsCpv6aVYWLQ+KosV5fsRR8DiIfy9CzIwJ0/QPwUfBrNLvepVZgM1M212amghY1XWQ54YngiMe7odWuhXTUqdrSBUXYOqHoGA0Yg/X/PXPnY/o4UP1Lzz+kVHI6XyPOmFwTfIPmWS2oJggH6g9CW/0S8W8CQTJJ2Oq4lfZdm/DR4FdiScJMKKwQ9klWbTGo8KCyX1PaYSBxRJWgNQ1cWrlhfxFYO31sG919zn/blvblbejR3g33myx0FQ4L8JlarQ8Ht2rpMnP/g9oldb+V2GIz7AzWj6flLJfsv8Y5HCX0lmzZooYECYuV4AfGUuhy3pr4Dc+xjglYICJPUYAbOzRPGYnDB3R6yyUmxvU3afGqnXYvEJCKOsIhENCKiTu3w+Bl3zIbp1BF+kJ/8jJOUvoC7j5pLKYPqx65nkaCX4qW8oevrM2QzD+rB3TZaVHpHuPi7dVXzEcDTl1edQHZXc/EXm5JXBhNd1Eh0AZMGchXCoofllarRULmmgzQOdLjJK+1K6AIvP+xU88Cfjv66K06LrOoP+MhdJtRrfabKtSoUQi7x48on8oRVrFnqAYj2mYMvuuMaMnezoxjM84yBVlEEkuSIKUHDv/kd81RLyQaw+sqKXQPRVDiyuLnN3bHqxDUzKyFrSuSk4=
 
+before_install:
+- npm install -g nsp mocha
+
 # TODO: Add GitHub releases deploy for tagged builds
 deploy:
   on: # Only deploy a single version on master branch
