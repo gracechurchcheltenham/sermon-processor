@@ -57,7 +57,7 @@ var self = module.exports = {
 				console.error(err);
 				callback(err);
 			} else {
-				var array = new Object();
+				var array = {};
 				array.tags = tags;
 				array.filename = data.orig_filename;
 				callback(null, array);
@@ -98,20 +98,20 @@ var self = module.exports = {
 
 	processDate: function(data, callback) {
 		console.log("Attempting to extract date from ID3 tags...");
-		var separator = '-'
+		var separator = '-';
 		var dateReg = /\d{4}-\d{2}-\d{2}/;
 
 		var d = data.filename.match(dateReg);
 
 		// if we find the date in the string, parse it
 		// if not, skip (leave it to be added manually)
-		if(d != null) {
-			var parts = d[0].split(separator)
+		if(d !== null) {
+			var parts = d[0].split(separator);
 			var year = parts[0];
 			var month = parts[1];
 			var day = parts[2];
 
-			data.sermonDate = new Object();
+			data.sermonDate = {};
 			data.sermonDate.year = year;
 			data.sermonDate.month = month;
 			data.sermonDate.day = day;
