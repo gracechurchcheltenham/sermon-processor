@@ -1,155 +1,161 @@
+/* eslint no-param-reassign: 0 */
+/* eslint no-console: 0 */  // --> AWS Lambda expects native console commands
+
 /*
-* IAM role requirements: S3_ReadOnly, SNS_Publish, CloudWatch:Logs
-*/
+ * IAM role requirements: S3_ReadOnly, SNS_Publish, CloudWatch:Logs
+ */
 
-"use strict";
+import dotenv from 'dotenv';
 
-var AWS = require('aws-sdk');
-AWS.config.update({region: process.env.AWS_REGION});
+const AWS = require('aws-sdk');
+const async = require('async');
+const temp = require('temp').track();
+const id3 = require('id3_reader');
 
-var async = require('async');
-var temp = require('temp').track();
 
-if( process.env.NODE_ENV == 'development') {
-	require('dotenv').config();
-}
+dotenv.config();
+
+AWS.config.update({
+  region: process.env.AWS_REGION,
+});
+
 
 const PUBLISH_ARN = process.env.SNS_TOPIC_ARN;
 
-var self = module.exports = {
-	handler: function(event, context) {
-		async.waterfall([
-			function start(callback) {
-				var params = {
-					Bucket: event.Records[0].s3.bucket.name,
-					Key: event.Records[0].s3.object.key
-				};
+export default {
+  handler(event, context) {
+    async.waterfall([
+      function start(callback) {
+        const params = {
+          Region: event.Records[0].awsRegion,
+          Bucket: event.Records[0].s3.bucket.name,
+          Key: event.Records[0].s3.object.key,
+        };
 
-				self.download(params, callback);
-			},
-			self.extractID3,
-			self.processDate,
-			self.processTags,
-			self.sendSNS,
-			function finishUp(data, next) {
-				temp.cleanup();
-				context.succeed();
-			},
-			function (err) {
-				if (err) {
-					temp.cleanup();
-					console.error(err);
-					context.fail();
-				}
-			}
-		]);
-	},
+        this.download(params, callback);
+      },
+      this.extractID3,
+      this.processDate,
+      this.processTags,
+      this.sendSNS,
+      (err, result) => {
+        temp.cleanup();
 
-	/**
-	 * Extract ID3 tags from an MP3 filepath
-	 **/
-	extractID3: function(data, callback) {
-		var id3 = require("id3_reader");
+        if (err) {
+          console.error(err);
+          context.fail(err);
+        } else {
+          context.succeed(result);
+        }
+      },
+    ]);
+  },
 
-		console.log("Extracting ID3 tags...");
-		id3.read(data.filepath, function(err, tags) {
-			if(err) {
-				console.error(err);
-				callback(err);
-			} else {
-				var array = {};
-				array.tags = tags;
-				array.filename = data.orig_filename;
-				callback(null, array);
-			}
-		});
-	},
+  /**
+   * Extract ID3 tags from an MP3 filepath
+   **/
+  extractID3(data, callback) {
+    console.log('Extracting ID3 tags...');
+    id3.read(data.filepath, (err, tags) => {
+      if (err) {
+        console.error(err);
+        callback(err);
+      } else {
+        const array = {};
+        array.tags = tags;
+        array.filename = data.orig_filename;
+        callback(null, array);
+      }
+    });
+  },
 
 
+  download(params, callback) {
+    console.log('Downloading...');
 
-	download: function(params, callback) {
-		console.log("Downloading...");
+    const s3 = new AWS.S3({
+      region: params.Region,
+    });
 
-		var s3 = new AWS.S3();
+    const req = s3.getObject(params);
+    const tmpfile = temp.createWriteStream();
 
-		var req = s3.getObject(params);
-		var tmpfile = temp.createWriteStream();
+    const response = {};
+    response.filepath = tmpfile.path;
+    response.orig_filename = `http://${params.Bucket}/${params.Key}`;
+    response.s3Params = params;
 
-		var response = {};
-		response.filepath = tmpfile.path;
-		response.orig_filename = 'http://' + params.Bucket + '/' + params.Key;
-		response.s3Params = params;
+    console.log('Storing file temporarily at: ', response.filepath);
 
-		console.log("Storing file temporarily at: ", response.filepath);
+    tmpfile.on('close', () =>
+      callback(null, response),
+    );
 
-		tmpfile.on('close', function() {
-			callback(null, response);
-			return;
-		});
+    req.on('error', res =>
+      callback(res.error),
+    );
 
-		req.on('error', function(response) {
-			callback(response.error);
-			return;
-		});
-
-		req.createReadStream().pipe(tmpfile);
-	},
-
-
-	processDate: function(data, callback) {
-		console.log("Attempting to extract date from ID3 tags...");
-		var separator = '-';
-		var dateReg = /\d{4}-\d{2}-\d{2}/;
-
-		var d = data.filename.match(dateReg);
-
-		// if we find the date in the string, parse it
-		// if not, skip (leave it to be added manually)
-		if(d !== null) {
-			var parts = d[0].split(separator);
-			var year = parts[0];
-			var month = parts[1];
-			var day = parts[2];
-
-			data.sermonDate = {};
-			data.sermonDate.year = year;
-			data.sermonDate.month = month;
-			data.sermonDate.day = day;
-		}
-
-		callback(null, data);
-	},
+    req.createReadStream().pipe(tmpfile);
+  },
 
 
-	processTags: function(data, callback) {
-		console.log("Processing ID3 tags");
+  processDate(data, callback) {
+    console.log('Attempting to extract date from ID3 tags...');
 
-		if( data.tags.subtitle ) {
-			// split subtitle tag into seperate passages
-			var arr = data.tags.subtitle.split(";");
-			data.tags.subtitle = arr.map(function(s) { return s.trim() });
-		}
+    const separator = '-';
+    const dateReg = /\d{4}-\d{2}-\d{2}/;
 
-		callback(null, data);
-	},
+    const d = data.filename.match(dateReg);
+
+    // if we find the date in the string, parse it
+    // if not, skip (leave it to be added manually)
+    if (d !== null) {
+      const parts = d[0].split(separator);
+      const year = parts[0];
+      const month = parts[1];
+      const day = parts[2];
+
+      data.sermonDate = {};
+      data.sermonDate.year = year;
+      data.sermonDate.month = month;
+      data.sermonDate.day = day;
+    }
+
+    callback(null, data);
+  },
 
 
-	sendSNS: function(data, callback) {
-		var sns = new AWS.SNS();
+  processTags(data, callback) {
+    console.log('Processing ID3 tags');
 
-		sns.publish({
-			TargetArn: PUBLISH_ARN,
-			Message: JSON.stringify(data),
-			Subject: "Sermon uploaded"
-		}, function(err, data) {
-			if(err) {
-				console.log("SNS message failed to send");
-				console.error(err);
-				callback(err);
-			} else {
-				console.log("SNS message sent");
-				callback(null, data);
-			}
-		});
-	}
+    if (data.tags.subtitle) {
+      // split subtitle tag into seperate passages
+      const arr = data.tags.subtitle.split(';');
+      data.tags.subtitle = arr.map(s =>
+        s.trim(),
+      );
+    }
+
+    callback(null, data);
+  },
+
+
+  sendSNS(data, callback) {
+    const sns = new AWS.SNS();
+
+    sns.publish({
+      TargetArn: PUBLISH_ARN,
+      Message: JSON.stringify(data),
+      Subject: 'Sermon uploaded',
+    }, (err, response) => {
+      if (err) {
+        console.log('SNS message failed to send');
+        console.error(err);
+        callback(err);
+      } else {
+        console.log('SNS message sent');
+        callback(null, response);
+      }
+    });
+  },
 };
