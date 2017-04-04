@@ -23,7 +23,7 @@ AWS.config.update({
 const PUBLISH_ARN = process.env.SNS_TOPIC_ARN;
 
 export default {
-  handler(event, context) {
+  handler(event, context, cb) {
     async.waterfall([
       function start(callback) {
         const params = {
@@ -43,9 +43,9 @@ export default {
 
         if (err) {
           console.error(err);
-          context.fail(err);
+          cb(err);
         } else {
-          context.succeed(result);
+          cb.succeed(null, result);
         }
       },
     ]);

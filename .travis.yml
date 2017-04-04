@@ -1,7 +1,6 @@
 language: node_js
 node_js:
   - "6.10"
-  - "4.3"
 cache: yarn
 env:
   global:
@@ -16,7 +15,7 @@ deploy:
   function_name: process-sermons
   region: eu-west-2
   role: arn:aws:iam::727653659641:role/service-role/sermon-processing
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   handler_name: handler
   memory_size: 128 # MB
   timeout: 120 # seconds
