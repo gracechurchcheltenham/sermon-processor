@@ -5,13 +5,11 @@
  * IAM role requirements: S3_ReadOnly, SNS_Publish, CloudWatch:Logs
  */
 
-import dotenv from 'dotenv';
-
 const AWS = require('aws-sdk');
 const async = require('async');
 const temp = require('temp').track();
 const id3 = require('id3_reader');
-
+const dotenv = require('dotenv');
 
 dotenv.config();
 
