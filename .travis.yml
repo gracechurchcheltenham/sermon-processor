@@ -10,7 +10,7 @@ env:
 deploy:
   on: # Only deploy a single version on master branch
     branch: master
-    node: '4.3'
+    node: '6.10'
   provider: lambda
   function_name: process-sermons
   region: eu-west-2
