@@ -5,6 +5,8 @@
  * IAM role requirements: S3_ReadOnly, SNS_Publish, CloudWatch:Logs
  */
 
+'use strict';
+
 const AWS = require('aws-sdk');
 const async = require('async');
 const temp = require('temp').track();
