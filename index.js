@@ -55,13 +55,9 @@ function download(params, callback) {
 
   console.log('Storing file temporarily at: ', response.filepath);
 
-  tmpfile.on('close', () =>
-    callback(null, response),
-  );
+  tmpfile.on('close', () => callback(null, response));
 
-  req.on('error', res =>
-    callback(res.error),
-  );
+  req.on('error', res => callback(res.error));
 
   req.createReadStream().pipe(tmpfile);
 }
@@ -99,9 +95,7 @@ function processTags(data, callback) {
   if (data.tags.subtitle) {
     // split subtitle tag into seperate passages
     const arr = data.tags.subtitle.split(';');
-    data.tags.subtitle = arr.map(s =>
-      s.trim(),
-    );
+    data.tags.subtitle = arr.map(s => s.trim());
   }
 
   callback(null, data);
