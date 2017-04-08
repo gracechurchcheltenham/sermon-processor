@@ -149,6 +149,8 @@ function sendSNS(data, callback) {
   return null;
 }
 
+
+console.log('Fresh environment. Loading module for 1st time.');
 exports.handler = (event, context, cb) => {
   waterfall([
     function start(callback) {
@@ -168,10 +170,12 @@ exports.handler = (event, context, cb) => {
   ],
 
   (error, result) => {
+    console.log('end of the waterfall');
     if (error) {
       console.error(error);
       cb(error);
     } else {
+      console.log('success');
       cb(null, result);
     }
   });
