@@ -8,12 +8,13 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const async = require('async');
-const temp = require('temp').track();
-const id3 = require('id3_reader');
+const waterfall = require('async/waterfall');
+const nodeID3 = require('node-id3');
 const dotenv = require('dotenv');
 
 dotenv.config();
+
+// TODO: Use KMS to protect env vars
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -24,42 +25,45 @@ const PUBLISH_ARN = process.env.SNS_TOPIC_ARN;
 
 function extractID3(data, callback) {
   console.log('Extracting ID3 tags...');
-  id3.read(data.filepath, (err, tags) => {
-    if (err) {
-      console.error(err);
-      callback(err);
-    } else {
-      const array = {};
-      array.tags = tags;
-      array.filename = data.orig_filename;
-      callback(null, array);
-    }
-  });
+
+  const tags = nodeID3.read(data.Body);
+  if (!tags) {
+    return callback('No ID3 tags extracted. Can\'t continue.');
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(tags);
+  }
+
+  const array = {};
+  array.tags = tags;
+  array.filename = data.location;
+
+  return callback(null, array);
 }
 
 
-function download(params, callback) {
+function download(_params, callback) {
   console.log('Downloading...');
 
   const s3 = new AWS.S3({
-    region: params.Region,
+    region: _params.Region,
   });
 
-  const req = s3.getObject(params);
-  const tmpfile = temp.createWriteStream();
+  const params = {
+    Bucket: _params.Bucket,
+    Key: _params.Key,
+  };
 
-  const response = {};
-  response.filepath = tmpfile.path;
-  response.orig_filename = `http://${params.Bucket}/${params.Key}`;
-  response.s3Params = params;
+  s3.getObject(params, (error, data) => {
+    if (error) {
+      console.log(error);
+      return callback(error);
+    }
 
-  console.log('Storing file temporarily at: ', response.filepath);
-
-  tmpfile.on('close', () => callback(null, response));
-
-  req.on('error', res => callback(res.error));
-
-  req.createReadStream().pipe(tmpfile);
+    data.location = `http://${params.Bucket}/${params.Key}`;
+    return callback(null, data);
+  });
 }
 
 
@@ -83,6 +87,10 @@ function processDate(data, callback) {
     data.sermonDate.year = year;
     data.sermonDate.month = month;
     data.sermonDate.day = day;
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(data.sermonDate);
+    }
   }
 
   callback(null, data);
@@ -96,33 +104,53 @@ function processTags(data, callback) {
     // split subtitle tag into seperate passages
     const arr = data.tags.subtitle.split(';');
     data.tags.subtitle = arr.map(s => s.trim());
-  }
 
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(data.tags.subtitle);
+    }
+  }
   callback(null, data);
 }
 
 
-function sendSNS(data, callback) {
-  const sns = new AWS.SNS();
+function addMetadataToS3(data, callback) {
+  console.log('Adding extracted metadata to S3');
 
+  // TODO: Add all extracted tags to S3 as file metadata
+  // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property
+
+  return callback(null, data);
+}
+
+
+function sendSNS(data, callback) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Skipping SNS as not in production.');
+    return callback(null, data);
+  }
+
+  const sns = new AWS.SNS();
   sns.publish({
     TargetArn: PUBLISH_ARN,
     Message: JSON.stringify(data),
     Subject: 'Sermon uploaded',
-  }, (err, response) => {
-    if (err) {
+  }, (error, response) => {
+    if (error) {
       console.log('SNS message failed to send');
-      console.error(err);
-      callback(err);
-    } else {
-      console.log('SNS message sent');
-      callback(null, response);
+      console.error(error);
+      return callback(error);
     }
+
+    console.log('SNS message sent');
+    return callback(null, response);
   });
+
+  return null;
 }
 
 exports.handler = (event, context, cb) => {
-  async.waterfall([
+  waterfall([
     function start(callback) {
       const params = {
         Region: event.Records[0].awsRegion,
@@ -135,16 +163,16 @@ exports.handler = (event, context, cb) => {
     extractID3,
     processDate,
     processTags,
+    addMetadataToS3,
     sendSNS,
-    (err, result) => {
-      temp.cleanup();
+  ],
 
-      if (err) {
-        console.error(err);
-        cb(err);
-      } else {
-        cb.succeed(null, result);
-      }
-    },
-  ]);
+  (error, result) => {
+    if (error) {
+      console.error(error);
+      cb(error);
+    } else {
+      cb(null, result);
+    }
+  });
 };
