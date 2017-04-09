@@ -28,7 +28,7 @@ function extractID3(data, callback) {
 
   const tags = nodeID3.read(data.Body);
   if (!tags) {
-    return callback('No ID3 tags extracted. Can\'t continue.');
+    return callback(new Error('No ID3 tags extracted. Can\'t continue.'));
   }
 
   console.log(tags);
