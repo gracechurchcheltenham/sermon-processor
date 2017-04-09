@@ -173,10 +173,9 @@ exports.handler = (event, context, cb) => {
     console.log('end of the waterfall');
     if (error) {
       console.error(error);
-      cb(error);
-    } else {
-      console.log('success');
-      cb(null, result);
     }
+
+    console.log('success', result);
+    return cb(error, result);
   });
 };
