@@ -31,9 +31,7 @@ function extractID3(data, callback) {
     return callback('No ID3 tags extracted. Can\'t continue.');
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(tags);
-  }
+  console.log(tags);
 
   if (tags.image) delete tags.image;
 
@@ -57,6 +55,7 @@ function download(_params, callback) {
     Key: _params.Key,
   };
 
+  console.log(`s3://${params.Bucket}/${params.Key}`);
   s3.getObject(params, (error, data) => {
     if (error) {
       console.log(error);
@@ -177,7 +176,6 @@ exports.handler = (event, context, cb) => {
       console.error(error);
     }
 
-    console.log('success', result);
     return cb(error, result);
   });
 };
