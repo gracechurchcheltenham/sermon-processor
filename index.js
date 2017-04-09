@@ -158,7 +158,7 @@ exports.handler = (event, context, cb) => {
       const params = {
         Region: event.Records[0].awsRegion,
         Bucket: event.Records[0].s3.bucket.name,
-        Key: event.Records[0].s3.object.key,
+        Key: decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' ')),
       };
 
       download(params, callback);
