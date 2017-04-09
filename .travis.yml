@@ -17,7 +17,7 @@ deploy:
   role: arn:aws:iam::727653659641:role/service-role/sermon-processing
   runtime: nodejs6.10
   handler_name: handler
-  memory_size: 128 # MB
+  memory_size: 1536 # MB
   timeout: 120 # seconds
   access_key_id:
     secure: hh+YbcauZ6Aq0Nr54W7D1OVHTijJhR8xdyxSTzRY1jA1TbjCk9zOlndKDRv5eVll/RL2Lso4ZpVkzxgPxJeZ4hoAqWLfzCfr4Ev28sMEg5N4ZMlqC/3G+u+xbhlQkpbyS2xR+CUYO8V1IryYCb8wlAMKiKUn7dhVzr9UIQj8JRzhe7eBbeGVl77DF20Vvrf6MJyAYpE7UVQzn1skE9S6l5PYEfGR3O8Z9G5boW0k84aDbglEEplLO/LtZYmsdby5FA8JLp0wObd0DG1Dy0/xuIBK7/l86ZfKcFJdObM7XG3ftIxrfKyekXOrYNEB6OlxmXDXUf9GdO+puP5jZgENlSWLs3WaWBeZTxXS0ARcIJXlSZ6cEkpNyAeOIi1e7wNGF6j9Qn+rH+Q0kvd6UWzfZMLZALzXFN1scXJZlBs4jwzzl7xCOrmFv4J9EaIewoajAA38NlVf/MK8c24/V4OV/rWpqOrw8aE7lCyre+7NbPcMG4P/oyeVoHq+Sy3H5tFt3NkhRZhZNS5ANqXwGqSj1rgLHvVL1XeyevwYulGwSv0zxshvbZ+jIC7bwFspUw6y4+b/LvaXUkEUPMS7gjnERjTPi1WLB10id6pSIdyhhkccVCT6nQ5EuwV/ajKOrMook8MHk5sqI807uyM5TP5MSQ1xqrBbgK0eKt30jSykYNQ=
