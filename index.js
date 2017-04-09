@@ -35,6 +35,8 @@ function extractID3(data, callback) {
     console.log(tags);
   }
 
+  if (tags.image) delete tags.image;
+
   const array = {};
   array.tags = tags;
   array.filename = data.location;
