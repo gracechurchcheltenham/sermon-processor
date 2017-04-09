@@ -62,7 +62,7 @@ function download(_params, callback) {
       return callback(error);
     }
 
-    data.location = `http://${params.Bucket}/${params.Key}`;
+    data.location = `https://${params.Bucket}/${params.Key}`;
     return callback(null, data);
   });
 }
