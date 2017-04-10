@@ -143,8 +143,10 @@ function sendSNS(data, callback) {
       return callback(error);
     }
 
-    console.log('SNS message sent');
-    return callback(null, response);
+    console.log(`SNS message sent to ${PUBLISH_ARN}`);
+    data.sns_response = response;
+
+    return callback(null, data);
   });
 
   return null;
