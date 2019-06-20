@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "zip -r processSermons.zip . -x *.git/* -x test/* ",
-    "test": "nsp check && npm run lint",
+    "test": "npm audit && npm run lint",
     "lint": "eslint ."
   },
   "author": "Sam Freedman"
