@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "async": "^2.3.0",
-    "aws-sdk": "~2.1.27",
+    "aws-sdk": "~2.814.0",
     "dotenv": "^4.0.0",
     "node-id3": "^0.0.9"
   },
